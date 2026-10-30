@@ -15,18 +15,20 @@ export function ChatPage() {
   const sendMessage = useChatStore((s) => s.sendMessage)
   const createNewChat = useChatStore((s) => s.createNewChat)
   const loadChat = useChatStore((s) => s.loadChat)
-  const clearError = useChatStore((s) => s.clearError)
+  const hydrateChats = useChatStore((s) => s.hydrateChats)
+  const retryLastMessage = useChatStore((s) => s.retryLastMessage)
 
   useEffect(() => {
+    void hydrateChats()
     if (chatId) {
-      loadChat(chatId)
+      void loadChat(chatId)
       return
     }
     // Visiting /chat always starts a new conversation. Existing chats remain
     // available only from Chat History and their /chat/:chatId links.
     const id = createNewChat()
     navigate(`/chat/${id}`, { replace: true })
-  }, [chatId, createNewChat, loadChat, navigate])
+  }, [chatId, createNewChat, hydrateChats, loadChat, navigate])
 
   const active = chats.find((c) => c.id === activeChatId)
 
@@ -58,7 +60,7 @@ export function ChatPage() {
               <LoadingDots />
             </Card>
           )}
-          {error && <ErrorState message={error} onRetry={clearError} />}
+          {error && <ErrorState message={error} onRetry={() => void retryLastMessage()} />}
         </div>
 
         <div className="space-y-3 p-4">

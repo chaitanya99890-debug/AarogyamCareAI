@@ -1,0 +1,138 @@
+---
+title: AarogyamCareAI — Entity Relationship Diagram
+---
+erDiagram
+    USERS {
+        BIGINT id PK
+        VARCHAR name
+        VARCHAR email UK
+        VARCHAR password_hash
+        ENUM role
+        DATE date_of_birth
+        VARCHAR gender
+        VARCHAR phone
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    AUTH_SESSIONS {
+        BIGINT id PK
+        BIGINT user_id FK
+        CHAR token_hash UK
+        DATETIME expires_at
+        TIMESTAMP created_at
+    }
+    HEALTH_PROFILES {
+        BIGINT id PK
+        BIGINT user_id FK_UK
+        VARCHAR blood_group
+        VARCHAR height
+        VARCHAR weight
+        TEXT allergies
+        TEXT existing_conditions
+        TEXT medications
+        VARCHAR emergency_contact_name
+        VARCHAR emergency_contact_phone
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    CHAT_CONVERSATIONS {
+        BIGINT id PK
+        VARCHAR public_id UK
+        BIGINT user_id FK
+        VARCHAR title
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    CHAT_MESSAGES {
+        BIGINT id PK
+        BIGINT conversation_id FK
+        ENUM role
+        MEDIUMTEXT message
+        TIMESTAMP created_at
+    }
+    DISEASE_PREDICTIONS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR prediction
+        DECIMAL confidence
+        JSON symptoms_json
+        VARCHAR model_name
+        TIMESTAMP created_at
+    }
+    RISK_ASSESSMENTS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR risk_result
+        DECIMAL probability
+        JSON input_data_json
+        VARCHAR model_name
+        TIMESTAMP created_at
+    }
+    MEDICAL_REPORTS {
+        BIGINT id PK
+        BIGINT user_id FK
+        VARCHAR original_filename
+        VARCHAR file_type
+        BIGINT file_size
+        VARCHAR storage_path
+        ENUM status
+        TIMESTAMP uploaded_at
+    }
+    REPORT_ANALYSES {
+        BIGINT id PK
+        BIGINT report_id FK_UK
+        MEDIUMTEXT analysis_text
+        JSON analysis_json
+        VARCHAR model_name
+        TIMESTAMP created_at
+    }
+    APPOINTMENTS {
+        BIGINT id PK
+        VARCHAR public_id UK
+        BIGINT user_id FK
+        VARCHAR doctor
+        DATE appointment_date
+        TIME appointment_time
+        ENUM reminder
+        TEXT reminder_message
+        VARCHAR patient_phone
+        BOOLEAN sms_consent
+        ENUM sms_status
+        DATETIME sms_sent_at
+        DATETIME sms_last_attempt_at
+        TEXT sms_last_error
+        VARCHAR sms_sid
+        VARCHAR sms_provider_status
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    APPOINTMENT_SMS_LOGS {
+        BIGINT id PK
+        BIGINT appointment_id FK
+        DATETIME created_at
+        ENUM event
+        VARCHAR sid
+        VARCHAR status
+        TEXT error
+    }
+    ADMIN_AUDIT_LOGS {
+        BIGINT id PK
+        BIGINT admin_user_id FK
+        VARCHAR action
+        VARCHAR entity_type
+        VARCHAR entity_id
+        JSON details
+        TIMESTAMP created_at
+    }
+
+    USERS ||--o{ AUTH_SESSIONS : owns
+    USERS ||--o| HEALTH_PROFILES : has
+    USERS ||--o{ CHAT_CONVERSATIONS : starts
+    CHAT_CONVERSATIONS ||--o{ CHAT_MESSAGES : contains
+    USERS ||--o{ DISEASE_PREDICTIONS : receives
+    USERS ||--o{ RISK_ASSESSMENTS : receives
+    USERS ||--o{ MEDICAL_REPORTS : uploads
+    MEDICAL_REPORTS ||--o| REPORT_ANALYSES : has
+    USERS ||--o{ APPOINTMENTS : books
+    APPOINTMENTS o|--o{ APPOINTMENT_SMS_LOGS : creates
+    USERS ||--o{ ADMIN_AUDIT_LOGS : records

@@ -15,3 +15,17 @@ export function GuestRoute() {
   if (isAuthenticated) return <Navigate to="/dashboard" replace />
   return <Outlet />
 }
+
+export function AdminGuestRoute() {
+  const { isAuthenticated, user } = useAuth()
+  if (isAuthenticated) return <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />
+  return <Outlet />
+}
+
+export function AdminRoute() {
+  const { user, isAuthenticated } = useAuth()
+  const location = useLocation()
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />
+  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />
+  return <Outlet />
+}

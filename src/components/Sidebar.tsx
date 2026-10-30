@@ -12,8 +12,10 @@ import {
   UserRound,
   FileText,
   MapPinned,
+  ShieldCheck,
 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { cn } from '../utils'
 import { Logo } from './ui'
 
@@ -39,6 +41,7 @@ export function Sidebar({
   onLogout: () => void
   onNavigate?: () => void
 }) {
+  const { user } = useAuth()
   return (
     <aside className="flex h-full w-[256px] flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="px-5 py-5">
@@ -63,6 +66,21 @@ export function Sidebar({
             {label}
           </NavLink>
         ))}
+        {user?.role === 'admin' && (
+          <NavLink
+            to="/admin"
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
+                isActive ? 'bg-violet-50 text-violet-800 dark:bg-violet-950/50 dark:text-violet-200' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900',
+              )
+            }
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden />
+            Admin Panel
+          </NavLink>
+        )}
       </nav>
       <div className="p-3">
         <button

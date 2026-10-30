@@ -2,6 +2,7 @@ export interface User {
   id: string
   name: string
   email: string
+  role: 'user' | 'admin'
 }
 
 export interface AuthResponse {
@@ -92,6 +93,8 @@ export interface RiskPredictionRequest {
   smoking: boolean
   alcohol: boolean
   physical_activity: boolean
+  /** Required only when a value is outside the model's training support. */
+  confirm_unusual_readings?: boolean
 }
 
 export interface RiskPredictionResponse {
@@ -100,6 +103,8 @@ export interface RiskPredictionResponse {
   probability: number
   model: string
   message: string
+  input_warnings: string[]
+  reported_input_context: string[]
 }
 
 export type AppointmentReminder = '15m' | '30m' | '1h' | '1d' | '2d'

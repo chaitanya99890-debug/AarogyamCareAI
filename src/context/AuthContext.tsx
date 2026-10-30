@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { forgotPasswordRequest, loginRequest, signupRequest } from '../services/authService'
+import { adminLoginRequest, forgotPasswordRequest, loginRequest, signupRequest } from '../services/authService'
 import type { SignupPayload, User } from '../types'
 
 const AUTH_KEY = 'aarogyamcare.auth'
@@ -13,6 +13,7 @@ interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
   login: (email: string, password: string, remember: boolean) => Promise<void>
+  loginAdmin: (email: string, password: string, remember: boolean) => Promise<void>
   signup: (payload: SignupPayload) => Promise<void>
   logout: () => void
   forgotPassword: (email: string) => Promise<void>
@@ -24,7 +25,10 @@ function readAuth(): StoredAuth | null {
   const raw = localStorage.getItem(AUTH_KEY) ?? sessionStorage.getItem(AUTH_KEY)
   if (!raw) return null
   try {
-    return JSON.parse(raw) as StoredAuth
+    const auth = JSON.parse(raw) as StoredAuth
+    // Legacy browser-only tokens were never server-verifiable and cannot protect MySQL records.
+    if (!auth.token || auth.token.startsWith('local.')) return null
+    return auth
   } catch {
     return null
   }
@@ -50,6 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [persist],
   )
 
+  const loginAdmin = useCallback(async (email: string, password: string, remember: boolean) => {
+    const result = await adminLoginRequest(email, password)
+    persist(result, remember)
+    setUser(result.user)
+  }, [persist])
+
   const signup = useCallback(
     async (payload: SignupPayload) => {
       const result = await signupRequest(payload)
@@ -74,11 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAuthenticated: Boolean(user),
       login,
+      loginAdmin,
       signup,
       logout,
       forgotPassword,
     }),
-    [user, login, signup, logout, forgotPassword],
+    [user, login, loginAdmin, signup, logout, forgotPassword],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

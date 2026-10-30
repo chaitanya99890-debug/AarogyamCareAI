@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { sendChatMessage } from '../services/chatService'
+import { deleteChatConversation, fetchChatConversations, fetchChatMessages, sendChatMessage } from '../services/chatService'
 import type { ChatThread, Message } from '../types'
 import { AppError } from '../services/api'
 import { createId } from '../utils'
@@ -10,10 +10,13 @@ interface ChatState {
   activeChatId: string | null
   isSending: boolean
   error: string | null
+  pendingRetry: { chatId: string; content: string } | null
   sendMessage: (content: string) => Promise<void>
+  retryLastMessage: () => Promise<void>
   createNewChat: () => string
-  loadChat: (id: string) => void
-  deleteChat: (id: string) => void
+  hydrateChats: () => Promise<void>
+  loadChat: (id: string) => Promise<void>
+  deleteChat: (id: string) => Promise<void>
   clearError: () => void
 }
 
@@ -24,11 +27,45 @@ function titleFrom(text: string): string {
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set, get) => ({
-      chats: [],
-      activeChatId: null,
-      isSending: false,
-      error: null,
+    (set, get) => {
+      const requestReply = async (chatId: string, text: string) => {
+        set({ isSending: true, error: null, pendingRetry: null })
+        try {
+          const reply = await sendChatMessage(text, chatId)
+          const assistantMessage: Message = {
+            id: createId(),
+            role: 'assistant',
+            content: reply,
+            timestamp: new Date().toISOString(),
+          }
+          set((state) => ({
+            isSending: false,
+            chats: state.chats.map((chat) =>
+              chat.id === chatId
+                ? {
+                    ...chat,
+                    preview: reply,
+                    updatedAt: assistantMessage.timestamp,
+                    messages: [...chat.messages, assistantMessage],
+                  }
+                : chat,
+            ),
+          }))
+        } catch (error) {
+          const message =
+            error instanceof AppError
+              ? error.message
+              : 'Something went wrong while connecting to AarogyamCare AI. Please try again.'
+          set({ isSending: false, error: message, pendingRetry: { chatId, content: text } })
+        }
+      }
+
+      return {
+        chats: [],
+        activeChatId: null,
+        isSending: false,
+        error: null,
+        pendingRetry: null,
 
       createNewChat: () => {
         const id = createId()
@@ -43,19 +80,56 @@ export const useChatStore = create<ChatState>()(
         return id
       },
 
-      loadChat: (id) => {
-        set({ activeChatId: id, error: null })
+      hydrateChats: async () => {
+        try {
+          const chats = await fetchChatConversations()
+          set((state) => ({
+            chats,
+            activeChatId: state.activeChatId && chats.some((chat) => chat.id === state.activeChatId)
+              ? state.activeChatId
+              : null,
+          }))
+        } catch {
+          // Preserve the existing device copy during migration or a server outage.
+        }
       },
 
-      deleteChat: (id) => {
+      loadChat: async (id) => {
+        set({ activeChatId: id, error: null })
+        try {
+          const [conversations, messages] = await Promise.all([fetchChatConversations(), fetchChatMessages(id)])
+          const serverChat = conversations.find((chat) => chat.id === id)
+          if (!serverChat) return
+          set((state) => ({
+            chats: state.chats.some((chat) => chat.id === id)
+              ? state.chats.map((chat) => chat.id === id ? { ...serverChat, messages } : chat)
+              : [{ ...serverChat, messages }, ...state.chats],
+          }))
+        } catch {
+          // A local conversation can still be displayed while offline.
+        }
+      },
+
+      deleteChat: async (id) => {
         set((state) => {
           const chats = state.chats.filter((c) => c.id !== id)
           const activeChatId = state.activeChatId === id ? (chats[0]?.id ?? null) : state.activeChatId
           return { chats, activeChatId }
         })
+        try {
+          await deleteChatConversation(id)
+        } catch {
+          // The local persisted copy stays removed; retry is possible after reconnecting.
+        }
       },
 
-      clearError: () => set({ error: null }),
+      clearError: () => set({ error: null, pendingRetry: null }),
+
+      retryLastMessage: async () => {
+        const pendingRetry = get().pendingRetry
+        if (!pendingRetry) return
+        await requestReply(pendingRetry.chatId, pendingRetry.content)
+      },
 
       sendMessage: async (content) => {
         const text = content.trim()
@@ -71,8 +145,8 @@ export const useChatStore = create<ChatState>()(
         }
 
         set((state) => ({
-          isSending: true,
           error: null,
+          pendingRetry: null,
           chats: state.chats.map((c) =>
             c.id === chatId
               ? {
@@ -86,36 +160,10 @@ export const useChatStore = create<ChatState>()(
           ),
         }))
 
-        try {
-          const reply = await sendChatMessage(text, chatId)
-          const assistantMessage: Message = {
-            id: createId(),
-            role: 'assistant',
-            content: reply,
-            timestamp: new Date().toISOString(),
-          }
-          set((state) => ({
-            isSending: false,
-            chats: state.chats.map((c) =>
-              c.id === chatId
-                ? {
-                    ...c,
-                    preview: reply,
-                    updatedAt: assistantMessage.timestamp,
-                    messages: [...c.messages, assistantMessage],
-                  }
-                : c,
-            ),
-          }))
-        } catch (error) {
-          const message =
-            error instanceof AppError
-              ? error.message
-              : 'Something went wrong while connecting to AarogyamCare AI. Please try again.'
-          set({ isSending: false, error: message })
-        }
+        await requestReply(chatId, text)
       },
-    }),
+      }
+    },
     { name: 'aarogyamcare.chats' },
   ),
 )

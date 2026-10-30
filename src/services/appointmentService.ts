@@ -1,6 +1,11 @@
 import { apiDelete, apiGet, apiPost, apiPut } from './api'
 import type { Appointment } from '../types'
 
+export type SmsConfigurationStatus = {
+  configured: boolean
+  message: string
+}
+
 export function createServerAppointment(appointment: Appointment) {
   return apiPost<{ appointment: Appointment }>('/api/appointments', appointment)
 }
@@ -15,6 +20,10 @@ export function deleteServerAppointment(id: string) {
 
 export function getServerAppointments() {
   return apiGet<{ appointments: Appointment[] }>('/api/appointments')
+}
+
+export function getSmsConfigurationStatus() {
+  return apiGet<SmsConfigurationStatus>('/api/sms/status')
 }
 
 export function sendTestSms(to: string, message: string) {

@@ -1,0 +1,4 @@
+# Browser-test tooling verified in tests/.venv during Phase 2.
+selenium==4.51.0
+pytest==9.1.1
+pytest-html==4.2.0

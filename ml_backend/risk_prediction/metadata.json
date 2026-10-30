@@ -17,5 +17,5 @@
   ],
   "training_rows": 54890,
   "test_rows": 13723,
-  "selection_criterion": "highest positive-class recall, then F1-score, then ROC-AUC"
+  "selection_criterion": "highest training-only 5-fold CV recall, then F1-score, then ROC-AUC"
 }

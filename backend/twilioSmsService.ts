@@ -27,6 +27,16 @@ type TwilioError = {
 
 const trialAppointmentTemplate = 'sms_appointment_reminders'
 
+function userFacingTwilioError(code: number | string | undefined, fallback: string): string {
+  if (code === 572002 || code === '572002') {
+    return 'This Twilio trial account can send only to verified recipients. Verify the recipient in Twilio Console, then try again.'
+  }
+  if (code === 572003 || code === '572003') {
+    return 'Twilio verified the recipient, but this server is using the wrong trial sender. In Twilio Console, open Messaging > Try out SMS and copy the assigned trial number into TWILIO_PHONE_NUMBER in .env, then restart the server.'
+  }
+  return fallback
+}
+
 export function isE164PhoneNumber(value: string): boolean {
   return e164PhonePattern.test(value.trim())
 }
@@ -133,9 +143,12 @@ export async function sendSms(to: string, body: string): Promise<SmsSendResult> 
     const developmentMessage = `Twilio error${code !== undefined ? ` ${code}` : ''}: ${message}`
     return {
       success: false,
-      error: process.env.NODE_ENV !== 'production'
-        ? developmentMessage
-        : 'Twilio could not send the SMS. Check the configured account, sender, and recipient number.',
+      error: userFacingTwilioError(
+        code,
+        process.env.NODE_ENV !== 'production'
+          ? developmentMessage
+          : 'Twilio could not send the SMS. Check the configured account, sender, and recipient number.',
+      ),
       errorCode: code,
       errorStatus: status,
       moreInfo,

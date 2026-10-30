@@ -24,8 +24,8 @@ The data combines objective measurements, examination values, and self-reported 
 | Body mass index | `bmi` | `weight / (height / 100)^2` |
 | Blood pressure | `systolic_bp`, `diastolic_bp` | Dataset `ap_hi`, `ap_lo`, mmHg |
 | Gender | `gender` | Female = 1; Male = 2 |
-| Cholesterol | `cholesterol` | 1 = normal; 2 = above normal; 3 = high |
-| Glucose | `glucose` | 1 = normal; 2 = above normal; 3 = high |
+| Cholesterol | `cholesterol` | 1 = normal; 2 = above normal; 3 = well above normal |
+| Glucose | `glucose` | 1 = normal; 2 = above normal; 3 = well above normal |
 | Smoking/alcohol/activity | `smoking`, `alcohol`, `physical_activity` | No = 0; Yes = 1 |
 
 ## Preprocessing and feature engineering
@@ -36,9 +36,13 @@ BMI is the only derived feature. It is calculated from height and weight; the so
 
 The train/test split is 80/20, stratified, with `random_state=42`. Each sklearn Pipeline owns its ColumnTransformer: numeric values are median-imputed and standardized for Logistic Regression; categorical values are most-frequent imputed and one-hot encoded. All transforms are fitted only on the training partition, avoiding leakage. The selected complete pipeline is saved as `risk_model.pkl`; FastAPI never retrains it.
 
+### Input-domain safety
+
+The API accepts broad technical bounds so it can return a clear validation response, but it does not estimate until the user confirms a value outside the training-support limits: age 18–120 years, height 100–230 cm, weight 30–200 kg, systolic BP 70–250 mmHg, and diastolic BP 40–180 mmHg. These limits come from this project's data-cleaning rules, not from a clinical guideline; they identify unsupported model extrapolation and do not alter a supplied measurement.
+
 ## Models and actual evaluation
 
-Both requested classifiers were trained and evaluated on the same held-out 13,723-record test split. Positive-class metrics treat `cardio=1` as the higher-risk class. Confusion-matrix order is `[[TN, FP], [FN, TP]]`.
+Both requested classifiers are evaluated on the same held-out 13,723-record test split. Positive-class metrics treat `cardio=1` as the higher-risk class. Confusion-matrix order is `[[TN, FP], [FN, TP]]`. On future training runs, model selection uses five-fold stratified cross-validation on the training partition only; the held-out split is reserved for final reporting.
 
 | Model | Accuracy | Precision | Recall | F1-score | ROC-AUC | False negatives |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |

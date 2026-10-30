@@ -1,0 +1,15 @@
+flowchart LR
+  G[Guest] --> R(Register/Login)
+  U[Registered User] --> P(Manage Profile)
+  U --> C(Chat and History)
+  U --> D(Disease Prediction)
+  U --> H(Health Risk Prediction)
+  U --> A(Report Analysis)
+  U --> B(Book Appointments)
+  AD[Administrator] --> M(Monitor Users, Reports and Predictions)
+  AD --> S(Test SMS)
+  C --> Gemini[Gemini API]
+  A --> Gemini
+  D --> ML[FastAPI ML Service]
+  H --> ML
+  B --> Twilio[Twilio]

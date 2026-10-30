@@ -1,5 +1,5 @@
 import axios, { type AxiosError } from 'axios'
-import { AppError } from './api'
+import { AppError, apiPost } from './api'
 import type { DiseasePredictionResponse, SymptomsResponse } from '../types'
 
 const diseasePredictionClient = axios.create({
@@ -46,6 +46,17 @@ export async function predictDisease(symptoms: string[]): Promise<DiseasePredict
     const result = response.data
     if (!result.prediction || typeof result.confidence !== 'number' || !result.message) {
       throw new AppError('The ML backend returned an invalid prediction result.')
+    }
+    try {
+      await apiPost('/api/disease-predictions', {
+        symptoms,
+        prediction: result.prediction,
+        confidence: result.confidence,
+        modelName: 'disease_prediction',
+      })
+    } catch (persistenceError) {
+      // The ML response remains useful if history storage is temporarily unavailable.
+      console.error('Could not save disease prediction history:', persistenceError)
     }
     return result
   } catch (error) {

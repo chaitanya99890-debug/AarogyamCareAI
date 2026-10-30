@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Card, EmptyState, Input, PageHeader } from '../components/ui'
 import { useChatStore } from '../store/chatStore'
@@ -8,8 +8,13 @@ export function ChatHistoryPage() {
   const chats = useChatStore((s) => s.chats)
   const loadChat = useChatStore((s) => s.loadChat)
   const deleteChat = useChatStore((s) => s.deleteChat)
+  const hydrateChats = useChatStore((s) => s.hydrateChats)
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    void hydrateChats()
+  }, [hydrateChats])
 
   const filtered = useMemo(
     () =>
@@ -46,7 +51,7 @@ export function ChatHistoryPage() {
                 >
                   Open
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => deleteChat(chat.id)}>
+                <Button size="sm" variant="outline" onClick={() => void deleteChat(chat.id)}>
                   Delete
                 </Button>
               </div>

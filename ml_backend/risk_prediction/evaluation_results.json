@@ -25,7 +25,24 @@
   "target": "cardio (0 = no cardiovascular disease recorded, 1 = cardiovascular disease recorded)",
   "random_state": 42,
   "test_size": 0.2,
-  "selection_criterion": "highest positive-class recall, then F1-score, then ROC-AUC",
+  "selection_criterion": "highest training-only 5-fold CV recall, then F1-score, then ROC-AUC",
+  "cross_validation_on_training_partition": {
+    "logistic_regression": {
+      "recall_mean": 0.6655,
+      "f1_mean": 0.7071,
+      "roc_auc_mean": 0.7908,
+      "pr_auc_mean": 0.7696,
+      "brier_mean": 0.1873
+    },
+    "random_forest": {
+      "recall_mean": 0.6844,
+      "f1_mean": 0.7179,
+      "roc_auc_mean": 0.7995,
+      "pr_auc_mean": 0.7802,
+      "brier_mean": 0.1815
+    }
+  },
+  "final_holdout_note": "The final held-out test set was not used to choose the model.",
   "metrics": {
     "logistic_regression": {
       "accuracy": 0.7314,
@@ -33,6 +50,10 @@
       "recall": 0.6703,
       "f1_score": 0.7118,
       "roc_auc": 0.7951,
+      "pr_auc_average_precision": 0.7769,
+      "brier_score": 0.1853,
+      "sensitivity": 0.6703,
+      "specificity": 0.7913,
       "confusion_matrix": [
         [
           5486,
@@ -43,7 +64,49 @@
           4551
         ]
       ],
-      "false_negatives": 2239
+      "false_negatives": 2239,
+      "calibration_curve_10_bins": [
+        {
+          "mean_predicted": 0.0714,
+          "observed_fraction": 0.0962
+        },
+        {
+          "mean_predicted": 0.1551,
+          "observed_fraction": 0.1404
+        },
+        {
+          "mean_predicted": 0.2521,
+          "observed_fraction": 0.2209
+        },
+        {
+          "mean_predicted": 0.3509,
+          "observed_fraction": 0.3085
+        },
+        {
+          "mean_predicted": 0.4455,
+          "observed_fraction": 0.4417
+        },
+        {
+          "mean_predicted": 0.5485,
+          "observed_fraction": 0.5949
+        },
+        {
+          "mean_predicted": 0.6508,
+          "observed_fraction": 0.7163
+        },
+        {
+          "mean_predicted": 0.7516,
+          "observed_fraction": 0.8159
+        },
+        {
+          "mean_predicted": 0.8503,
+          "observed_fraction": 0.8392
+        },
+        {
+          "mean_predicted": 0.9417,
+          "observed_fraction": 0.8674
+        }
+      ]
     },
     "random_forest": {
       "accuracy": 0.7372,
@@ -51,6 +114,10 @@
       "recall": 0.689,
       "f1_score": 0.7217,
       "roc_auc": 0.8038,
+      "pr_auc_average_precision": 0.7846,
+      "brier_score": 0.1797,
+      "sensitivity": 0.689,
+      "specificity": 0.7844,
       "confusion_matrix": [
         [
           5438,
@@ -61,7 +128,49 @@
           4678
         ]
       ],
-      "false_negatives": 2112
+      "false_negatives": 2112,
+      "calibration_curve_10_bins": [
+        {
+          "mean_predicted": 0.08,
+          "observed_fraction": 0.0442
+        },
+        {
+          "mean_predicted": 0.1587,
+          "observed_fraction": 0.1251
+        },
+        {
+          "mean_predicted": 0.2522,
+          "observed_fraction": 0.2312
+        },
+        {
+          "mean_predicted": 0.3544,
+          "observed_fraction": 0.3355
+        },
+        {
+          "mean_predicted": 0.4487,
+          "observed_fraction": 0.4479
+        },
+        {
+          "mean_predicted": 0.5453,
+          "observed_fraction": 0.5532
+        },
+        {
+          "mean_predicted": 0.6436,
+          "observed_fraction": 0.6686
+        },
+        {
+          "mean_predicted": 0.7595,
+          "observed_fraction": 0.7952
+        },
+        {
+          "mean_predicted": 0.8417,
+          "observed_fraction": 0.845
+        },
+        {
+          "mean_predicted": 0.9055,
+          "observed_fraction": 0.9
+        }
+      ]
     }
   },
   "feature_importance": {

@@ -25,9 +25,14 @@ export async function uploadReport(
   file: File,
   onProgress?: (percent: number) => void,
 ): Promise<{ id: string; name: string }> {
-  const form = new FormData()
-  form.append('file', file)
-  return apiUpload('/api/reports/upload', form, onProgress)
+  onProgress?.(20)
+  const response = await apiPost<{ id: string; name: string }>('/api/reports', {
+    fileName: file.name,
+    mimeType: file.type,
+    fileSize: file.size,
+  })
+  onProgress?.(100)
+  return response
 }
 
 export async function analyzeReport(file: File): Promise<ReportAnalysis> {
@@ -49,6 +54,11 @@ export async function analyzeImage(file: File): Promise<ReportAnalysis> {
   const form = new FormData()
   form.append('file', file)
   return apiUpload<ReportAnalysis>('/api/images/analyze', form)
+}
+
+export async function fetchReports(): Promise<{ id: string; name: string; uploadedAt: string; status: 'uploaded' | 'analyzed' | 'failed'; type: string }[]> {
+  const response = await apiGet<{ reports: { id: string; name: string; uploadedAt: string; status: 'uploaded' | 'analyzed' | 'failed'; type: string }[] }>('/api/reports')
+  return response.reports
 }
 
 export async function fetchHealthProfile(): Promise<HealthProfile> {

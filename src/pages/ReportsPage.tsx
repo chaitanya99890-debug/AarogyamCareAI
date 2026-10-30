@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { FileUploader } from '../components/FileUploader'
 import { Link } from 'react-router-dom'
 import { Badge, Button, Card, EmptyState, PageHeader } from '../components/ui'
 import { useToast } from '../context/ToastContext'
-import { uploadReport } from '../services/reportService'
+import { fetchReports, uploadReport } from '../services/reportService'
 import type { HealthReport } from '../types'
 import { AppError } from '../services/api'
 import { createId, formatDate } from '../utils'
@@ -31,6 +31,21 @@ export function ReportsPage() {
     setReports(next)
     localStorage.setItem(KEY, JSON.stringify(next))
   }
+
+  useEffect(() => {
+    void fetchReports()
+      .then((serverReports) => {
+        const normalized = serverReports.map((report) => ({
+          ...report,
+          status: report.status === 'analyzed' ? 'ready' as const : report.status,
+        }))
+        setReports(normalized)
+        localStorage.setItem(KEY, JSON.stringify(normalized))
+      })
+      .catch(() => {
+        // Existing device-only metadata remains available during migration or an outage.
+      })
+  }, [])
 
   const onUpload = async () => {
     if (!file || !file.size) {

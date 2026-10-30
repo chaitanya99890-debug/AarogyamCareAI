@@ -2,7 +2,7 @@ import { BellRing, CalendarClock, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Textarea } from '../components/ui'
 import { useToast } from '../context/ToastContext'
-import { createServerAppointment, deleteServerAppointment, getServerAppointments, sendTestSms, updateServerAppointment } from '../services/appointmentService'
+import { createServerAppointment, deleteServerAppointment, getServerAppointments, getSmsConfigurationStatus, updateServerAppointment, type SmsConfigurationStatus } from '../services/appointmentService'
 import type { Appointment, AppointmentReminder } from '../types'
 import { createId, formatDate } from '../utils'
 
@@ -113,9 +113,7 @@ export function AppointmentsPage() {
   const [draft, setDraft] = useState<AppointmentDraft>(emptyDraft)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
-  const [testPhone, setTestPhone] = useState('')
-  const [testMessage, setTestMessage] = useState('AarogyamCare test: your SMS reminders are connected.')
-  const [isSendingTest, setIsSendingTest] = useState(false)
+  const [smsConfiguration, setSmsConfiguration] = useState<SmsConfigurationStatus | null>(null)
 
   const persist = (next: Appointment[]) => {
     setAppointments(next)
@@ -150,6 +148,18 @@ export function AppointmentsPage() {
       })
       .catch(() => {
         // The original browser copy remains usable if the optional server is offline.
+      })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    void getSmsConfigurationStatus()
+      .then((status) => {
+        if (active) setSmsConfiguration(status)
+      })
+      .catch(() => {
+        if (active) setSmsConfiguration({ configured: false, message: 'The SMS server is unavailable. Start the Node server to use SMS reminders.' })
       })
     return () => { active = false }
   }, [])
@@ -255,19 +265,6 @@ export function AppointmentsPage() {
     }
   }
 
-  const sendSmsTest = async (event: FormEvent) => {
-    event.preventDefault()
-    setIsSendingTest(true)
-    try {
-      const response = await sendTestSms(testPhone, testMessage)
-      showToast(response.message, 'success')
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : 'The test SMS could not be sent.', 'error')
-    } finally {
-      setIsSendingTest(false)
-    }
-  }
-
   return (
     <div className="space-y-8">
       <PageHeader title="Appointments" description="Create and edit your appointment notes. Items automatically move to history after their scheduled time." />
@@ -312,23 +309,13 @@ export function AppointmentsPage() {
         </form>
       </Card>
 
-      <Card className="border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20">
-        <h2 className="font-semibold text-amber-950 dark:text-amber-100">SMS reminders need server setup</h2>
-        <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">SMS delivery uses Twilio from the secure server. Add a phone number in international format and confirm consent. The reminder is only marked sent after Twilio accepts it.</p>
-      </Card>
-
-      <Card>
-        <form onSubmit={sendSmsTest} className="space-y-4">
-          <div>
-            <h2 className="font-semibold dark:text-white">Test SMS connection</h2>
-            <p className="mt-1 text-sm text-slate-500">Send one test to a number that has agreed to receive it before relying on scheduled reminders.</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Test phone number" type="tel" value={testPhone} onChange={(event) => setTestPhone(event.target.value)} placeholder="e.g. +919876543210" required />
-            <Input label="Test message" value={testMessage} onChange={(event) => setTestMessage(event.target.value)} maxLength={500} required />
-          </div>
-          <Button type="submit" disabled={isSendingTest}>{isSendingTest ? 'Sending test SMS…' : 'Send test SMS'}</Button>
-        </form>
+      <Card className={smsConfiguration?.configured ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20' : 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20'}>
+        <h2 className={smsConfiguration?.configured ? 'font-semibold text-emerald-950 dark:text-emerald-100' : 'font-semibold text-amber-950 dark:text-amber-100'}>
+          {smsConfiguration?.configured ? 'SMS server configured' : 'SMS reminders need server setup'}
+        </h2>
+        <p className={smsConfiguration?.configured ? 'mt-1 text-sm text-emerald-900 dark:text-emerald-200' : 'mt-1 text-sm text-amber-900 dark:text-amber-200'}>
+          {smsConfiguration?.message ?? 'Checking the secure SMS server configuration…'} SMS delivery uses Twilio from the secure server. The reminder is only marked sent after Twilio accepts it.
+        </p>
       </Card>
 
       <section>

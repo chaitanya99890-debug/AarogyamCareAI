@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from disease_prediction.predict import ModelNotReadyError, PredictionError, get_predictor
 from risk_prediction.predict import RiskModelNotReadyError, RiskPredictionError, get_risk_predictor
+from risk_prediction.validation import model_support_warnings, reported_input_context
 
 
 EDUCATIONAL_MESSAGE = (
@@ -43,6 +44,7 @@ class RiskPredictionRequest(BaseModel):
     smoking: bool
     alcohol: bool
     physical_activity: bool
+    confirm_unusual_readings: bool = False
 
 
 class RiskPredictionResponse(BaseModel):
@@ -51,6 +53,8 @@ class RiskPredictionResponse(BaseModel):
     probability: float
     model: str
     message: str
+    input_warnings: list[str]
+    reported_input_context: list[str]
 
 
 @asynccontextmanager
@@ -78,6 +82,13 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        # Isolated mock-test user and admin applications (npm run dev:test).
+        "http://localhost:5175",
+        "http://127.0.0.1:5175",
+        "http://localhost:5176",
+        "http://127.0.0.1:5176",
     ],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
@@ -160,6 +171,22 @@ def predict_risk(request: RiskPredictionRequest) -> RiskPredictionResponse:
         "alcohol": int(request.alcohol),
         "physical_activity": int(request.physical_activity),
     }
+    warnings = model_support_warnings({
+        "age": request.age,
+        "height": request.height,
+        "weight": request.weight,
+        "systolic_bp": request.systolic_bp,
+        "diastolic_bp": request.diastolic_bp,
+    })
+    if warnings and not request.confirm_unusual_readings:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Please verify the unusual measurement before requesting a model estimate.",
+                "warnings": warnings,
+                "requires_confirmation": True,
+            },
+        )
     try:
         prediction, score = get_risk_predictor().predict(values)
         return RiskPredictionResponse(
@@ -171,6 +198,8 @@ def predict_risk(request: RiskPredictionRequest) -> RiskPredictionResponse:
                 "This is an ML-based educational risk estimate, not a medical diagnosis. "
                 "The model score is not a calibrated medical probability and should not guide treatment."
             ),
+            input_warnings=warnings,
+            reported_input_context=reported_input_context(values),
         )
     except RiskModelNotReadyError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error

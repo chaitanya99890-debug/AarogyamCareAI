@@ -9,6 +9,28 @@ lerna-debug.log*
 
 node_modules
 ml_backend/.venv/
+ml_backend/.python-runtime/
+ml_backend/python-runtime-*.log
+# Local Python test environment and generated test artifacts.
+tests/.venv/
+tests/**/__pycache__/
+tests/**/*.py[cod]
+tests/screenshots/*
+!tests/screenshots/.gitkeep
+tests/reports/*
+!tests/reports/.gitkeep
+tests/jmeter/results/*
+!tests/jmeter/results/.gitkeep
+tests/jmeter/apache-jmeter-*/
+tests/jmeter/*.zip
+tests/jmeter/*.sha512
+tests/.env
+tests/.env.*
+!tests/.env.example
+__pycache__/
+*.py[cod]
+database-test-*.log
+database-test-context.json
 dist
 dist-ssr
 *.local

@@ -19,7 +19,11 @@ export const apiClient: AxiosInstance = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const raw = localStorage.getItem('aarogyamcare.auth')
+  // AuthProvider stores non-persistent sessions in sessionStorage when the
+  // user leaves "Remember me" unchecked. Both storage locations represent a
+  // valid signed-in session and must be sent with protected user and admin
+  // requests.
+  const raw = localStorage.getItem('aarogyamcare.auth') ?? sessionStorage.getItem('aarogyamcare.auth')
   if (raw) {
     try {
       const parsed = JSON.parse(raw) as { token?: string }

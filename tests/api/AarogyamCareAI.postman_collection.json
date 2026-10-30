@@ -1,0 +1,234 @@
+{
+  "info": {
+    "_postman_id": "a6b0d46c-9f5a-4e69-94d4-6e7f3de2ab01",
+    "name": "AarogyamCareAI - Local API Test Suite",
+    "description": "Local-only API tests derived from server.ts and ml_backend/app.py. Configure credentials in a local Postman environment; never export secrets. Run with npm run dev:test for deterministic Chat and Report Analysis requests. The SMS-send endpoint is intentionally excluded.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "node_base_url", "value": "http://localhost:3000" },
+    { "key": "ml_base_url", "value": "http://localhost:8000" },
+    { "key": "user_email", "value": "" },
+    { "key": "user_password", "value": "", "type": "secret" },
+    { "key": "admin_email", "value": "" },
+    { "key": "admin_password", "value": "", "type": "secret" },
+    { "key": "user_token", "value": "", "type": "secret" },
+    { "key": "admin_token", "value": "", "type": "secret" },
+    { "key": "appointment_id", "value": "" },
+    { "key": "chat_id", "value": "" },
+    { "key": "first_symptom", "value": "" },
+    { "key": "sample_png_base64", "value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL1TAAAAABJRU5ErkJggg==" }
+  ],
+  "item": [
+    {
+      "name": "Node - Service Health",
+      "item": [
+        {
+          "name": "GET /api/health - database ready",
+          "request": { "method": "GET", "url": "{{node_base_url}}/api/health" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body).to.include({ status: 'ok', database: 'ready' });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Node - Authentication",
+      "item": [
+        {
+          "name": "POST /api/auth/login - valid synthetic user",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}" }, "url": "{{node_base_url}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.user.role).to.eql('user');", "pm.expect(body.token).to.be.a('string').and.not.empty;", "pm.collectionVariables.set('user_token', body.token);"] } }]
+        },
+        {
+          "name": "POST /api/auth/login - invalid credentials",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"missing-user@example.test\",\n  \"password\": \"incorrect-password\"\n}" }, "url": "{{node_base_url}}/api/auth/login" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 401', () => pm.response.to.have.status(401));", "pm.expect(pm.response.json().message).to.eql('Incorrect email or password.');"] } }]
+        },
+        {
+          "name": "POST /api/auth/admin/login - valid synthetic admin",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}" }, "url": "{{node_base_url}}/api/auth/admin/login" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.user.role).to.eql('admin');", "pm.expect(body.token).to.be.a('string').and.not.empty;", "pm.collectionVariables.set('admin_token', body.token);"] } }]
+        },
+        {
+          "name": "POST /api/auth/admin/login - normal user rejected",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\"\n}" }, "url": "{{node_base_url}}/api/auth/admin/login" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 401', () => pm.response.to.have.status(401));", "pm.expect(pm.response.json().message).to.eql('Incorrect email or password.');"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Node - User Data and Validation",
+      "item": [
+        {
+          "name": "GET /api/appointments - unauthorized",
+          "request": { "method": "GET", "url": "{{node_base_url}}/api/appointments" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 401', () => pm.response.to.have.status(401));"] } }]
+        },
+        {
+          "name": "GET /api/appointments - authorized",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/appointments" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().appointments).to.be.an('array');"] } }]
+        },
+        {
+          "name": "POST /api/appointments - missing required fields",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": "{{node_base_url}}/api/appointments" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 400', () => pm.response.to.have.status(400));", "pm.expect(pm.response.json().message).to.include('Doctor name');"] } }]
+        },
+        {
+          "name": "POST /api/appointments - create temporary record",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"doctor\": \"API Test Doctor {{$guid}}\",\n  \"date\": \"2031-01-15\",\n  \"time\": \"10:00\",\n  \"reminder\": \"1d\",\n  \"reminderMessage\": \"Automated API test appointment\",\n  \"patientPhone\": \"\",\n  \"smsConsent\": false\n}" }, "url": "{{node_base_url}}/api/appointments" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 201', () => pm.response.to.have.status(201));", "const body = pm.response.json();", "pm.expect(body.appointment.smsStatus).to.eql('not_scheduled');", "pm.collectionVariables.set('appointment_id', body.appointment.id);"] } }]
+        },
+        {
+          "name": "PUT /api/appointments/:id - update temporary record",
+          "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"doctor\": \"API Test Doctor Updated\",\n  \"date\": \"2031-01-16\",\n  \"time\": \"11:00\",\n  \"reminder\": \"2d\",\n  \"reminderMessage\": \"Updated automated API test appointment\",\n  \"patientPhone\": \"\",\n  \"smsConsent\": false\n}" }, "url": "{{node_base_url}}/api/appointments/{{appointment_id}}" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().appointment.doctor).to.eql('API Test Doctor Updated');"] } }]
+        },
+        {
+          "name": "DELETE /api/appointments/:id - clean up temporary record",
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/appointments/{{appointment_id}}" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().success).to.eql(true);"] } }]
+        },
+        {
+          "name": "GET /api/health-profile - authorized",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/health-profile" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));"] } }]
+        },
+        {
+          "name": "GET /api/disease-predictions - authorized history",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/disease-predictions" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().predictions).to.be.an('array');"] } }]
+        },
+        {
+          "name": "GET /api/risk-assessments - authorized history",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/risk-assessments" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().assessments).to.be.an('array');"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Node - Chat and Report Analysis (dev:test only)",
+      "item": [
+        {
+          "name": "POST /api/chat - missing message",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"message\": \"   \" }" }, "url": "{{node_base_url}}/api/chat" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 400', () => pm.response.to.have.status(400));", "pm.expect(pm.response.json().message).to.eql('A message is required.');"] } }]
+        },
+        {
+          "name": "POST /api/chat - mocked valid exchange",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"message\": \"API automation health-information test\",\n  \"chatId\": \"postman-api-test-{{$guid}}\"\n}" }, "url": "{{node_base_url}}/api/chat" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.reply).to.be.a('string').and.not.empty;", "pm.collectionVariables.set('chat_id', body.chatId);"] } }]
+        },
+        {
+          "name": "DELETE /api/chat/conversations/:id - clean up test conversation",
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/chat/conversations/{{chat_id}}" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().success).to.eql(true);"] } }]
+        },
+        {
+          "name": "POST /api/reports/analyze - unsupported file type",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fileName\": \"not-a-report.txt\",\n  \"mimeType\": \"text/plain\",\n  \"data\": \"dGVzdA==\"\n}" }, "url": "{{node_base_url}}/api/reports/analyze" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 400', () => pm.response.to.have.status(400));", "pm.expect(pm.response.json().message).to.include('PDF, PNG, or JPG');"] } }]
+        },
+        {
+          "name": "POST /api/reports/analyze - synthetic PNG with mock analysis",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"fileName\": \"synthetic-api-test.png\",\n  \"mimeType\": \"image/png\",\n  \"data\": \"{{sample_png_base64}}\"\n}" }, "url": "{{node_base_url}}/api/reports/analyze" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.summary).to.eql('Mock report summary for automated testing only.');", "pm.expect(body.keyFindings).to.be.an('array');"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Node - Administrator Authorization",
+      "item": [
+        {
+          "name": "GET /api/admin/dashboard - normal user forbidden",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }], "url": "{{node_base_url}}/api/admin/dashboard" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 403', () => pm.response.to.have.status(403));", "pm.expect(pm.response.json().message).to.eql('Administrator access is required.');"] } }]
+        },
+        {
+          "name": "GET /api/admin/dashboard - administrator",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": "{{node_base_url}}/api/admin/dashboard" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().counts).to.be.an('object');"] } }]
+        },
+        {
+          "name": "GET /api/admin/users - administrator",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": "{{node_base_url}}/api/admin/users?search=&role=&page=1" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().users).to.be.an('array');"] } }]
+        },
+        {
+          "name": "GET /api/admin/appointments - administrator",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": "{{node_base_url}}/api/admin/appointments" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().appointments).to.be.an('array');"] } }]
+        },
+        {
+          "name": "GET /api/admin/reports - administrator",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": "{{node_base_url}}/api/admin/reports" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().reports).to.be.an('array');"] } }]
+        },
+        {
+          "name": "GET /api/admin/predictions - administrator",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": "{{node_base_url}}/api/admin/predictions" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.disease).to.be.an('array');", "pm.expect(body.risk).to.be.an('array');"] } }]
+        },
+        {
+          "name": "GET /api/admin/sms/status - administrator (no SMS sent)",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }], "url": "{{node_base_url}}/api/admin/sms/status" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().configured).to.be.a('boolean');"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Python ML - Disease Prediction",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": { "method": "GET", "url": "{{ml_base_url}}/health" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json().status).to.eql('ok');"] } }]
+        },
+        {
+          "name": "GET /symptoms - capture a model-supported symptom",
+          "request": { "method": "GET", "url": "{{ml_base_url}}/symptoms" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.symptoms).to.be.an('array').and.not.empty;", "pm.collectionVariables.set('first_symptom', body.symptoms[0]);"] } }]
+        },
+        {
+          "name": "POST /predict-disease - valid model-supported symptom",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"symptoms\": [\"{{first_symptom}}\"] }" }, "url": "{{ml_base_url}}/predict-disease" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.prediction).to.be.a('string').and.not.empty;", "pm.expect(body.confidence).to.be.a('number');"] } }]
+        },
+        {
+          "name": "POST /predict-disease - missing symptoms",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": "{{ml_base_url}}/predict-disease" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 422', () => pm.response.to.have.status(422));"] } }]
+        },
+        {
+          "name": "POST /predict-disease - unknown symptom",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{ \"symptoms\": [\"not-a-model-symptom\"] }" }, "url": "{{ml_base_url}}/predict-disease" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 400', () => pm.response.to.have.status(400));", "pm.expect(pm.response.json().detail).to.include('Unknown symptom');"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Python ML - Health Risk Prediction",
+      "item": [
+        {
+          "name": "POST /predict-risk - valid request",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"age\": 35,\n  \"gender\": \"female\",\n  \"height\": 165,\n  \"weight\": 62,\n  \"systolic_bp\": 120,\n  \"diastolic_bp\": 80,\n  \"cholesterol\": 1,\n  \"glucose\": 1,\n  \"smoking\": false,\n  \"alcohol\": false,\n  \"physical_activity\": true\n}" }, "url": "{{ml_base_url}}/predict-risk" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 200', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.risk_level).to.be.oneOf(['Lower Risk', 'Higher Risk']);", "pm.expect(body.prediction).to.be.oneOf([0, 1]);", "pm.expect(body.probability).to.be.a('number');"] } }]
+        },
+        {
+          "name": "POST /predict-risk - missing required fields",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": "{{ml_base_url}}/predict-risk" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 422', () => pm.response.to.have.status(422));", "pm.expect(pm.response.json().detail).to.include('Invalid request');"] } }]
+        },
+        {
+          "name": "POST /predict-risk - invalid blood pressure relationship",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"age\": 35, \"gender\": \"female\", \"height\": 165, \"weight\": 62,\n  \"systolic_bp\": 80, \"diastolic_bp\": 80, \"cholesterol\": 1, \"glucose\": 1,\n  \"smoking\": false, \"alcohol\": false, \"physical_activity\": true\n}" }, "url": "{{ml_base_url}}/predict-risk" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 400', () => pm.response.to.have.status(400));", "pm.expect(pm.response.json().detail).to.include('Systolic blood pressure');"] } }]
+        },
+        {
+          "name": "POST /predict-risk - incorrect data type",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"age\": \"not-a-number\", \"gender\": \"female\", \"height\": 165, \"weight\": 62,\n  \"systolic_bp\": 120, \"diastolic_bp\": 80, \"cholesterol\": 1, \"glucose\": 1,\n  \"smoking\": false, \"alcohol\": false, \"physical_activity\": true\n}" }, "url": "{{ml_base_url}}/predict-risk" },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('HTTP 422', () => pm.response.to.have.status(422));"] } }]
+        }
+      ]
+    }
+  ]
+}

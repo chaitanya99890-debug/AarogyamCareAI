@@ -1,0 +1,11 @@
+flowchart TB
+  Pages[React Pages] --> Services[Axios Service Modules]
+  Services --> Express[Express API]
+  Services --> FastAPI[FastAPI ML API]
+  Express --> Auth[auth.ts]
+  Express --> Stores[Persistence / Appointment / Admin Stores]
+  Stores --> MySQL[(MySQL)]
+  Express --> Gemini[Google Gemini]
+  Express --> SMS[Twilio SMS]
+  FastAPI --> Disease[Saved Disease Model]
+  FastAPI --> Risk[Saved Risk Model]

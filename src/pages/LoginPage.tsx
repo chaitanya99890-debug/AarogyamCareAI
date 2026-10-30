@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button, Input, Logo } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { AppError } from '../services/api'
 import { isEmail } from '../utils'
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, loginAdmin } = useAuth()
+  const admin = useLocation().pathname.startsWith('/admin/login')
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,8 +26,8 @@ export function LoginPage() {
     if (next.email || next.password) return
     setLoading(true)
     try {
-      await login(email, password, remember)
-      navigate('/dashboard')
+      await (admin ? loginAdmin(email, password, remember) : login(email, password, remember))
+      navigate(admin ? '/admin' : '/dashboard')
     } catch (error) {
       setErrors({
         form: error instanceof AppError ? error.message : 'Unable to sign in. Please try again.',
