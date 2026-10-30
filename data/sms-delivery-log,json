@@ -1,0 +1,159 @@
+[{
+        "appointmentId": "scheduler-verification",
+        "createdAt": "2026-09-13T15:23:11.337Z",
+        "event": "skipped",
+        "error": "No consent or a valid patient phone number was saved."
+    },
+    {
+        "createdAt": "2026-09-13T15:36:13.782Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:42:24.542Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:43:14.092Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:43:21.180Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:43:48.029Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:44:08.111Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:44:09.788Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:44:09.955Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:44:35.256Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:45:19.623Z",
+        "event": "test_failed",
+        "error": "SMS is not configured on the server yet."
+    },
+    {
+        "createdAt": "2026-09-13T15:55:02.040Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T15:56:18.220Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:00:31.111Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:00:37.742Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:00:53.972Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:09:27.412Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:09:34.456Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:09:56.316Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:10:50.464Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:10:57.102Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:13:57.620Z",
+        "event": "test_failed",
+        "error": "Twilio could not send the SMS. Check the configured account, sender, and recipient number."
+    },
+    {
+        "createdAt": "2026-09-13T16:21:07.689Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:21:13.831Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:22:14.232Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:22:24.652Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:22:30.062Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:22:38.307Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:22:46.466Z",
+        "event": "test_failed",
+        "error": "Twilio error 572006: Invalid template name. Trial accounts can only use predefined SMS templates."
+    },
+    {
+        "createdAt": "2026-09-13T16:31:53.538Z",
+        "event": "test_sent",
+        "sid": "SM585a005782861f19b7472c419a23aad1",
+        "status": "queued"
+    },
+    {
+        "createdAt": "2026-09-13T16:33:53.559Z",
+        "event": "test_sent",
+        "sid": "SM1569142e9d0a75327aba1f699139b05c",
+        "status": "queued"
+    }
+]

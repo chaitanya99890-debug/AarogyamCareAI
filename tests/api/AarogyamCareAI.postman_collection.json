@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a6b0d46c-9f5a-4e69-94d4-6e7f3de2ab01",
     "name": "AarogyamCareAI - Local API Test Suite",
-    "description": "Local-only API tests derived from server.ts and ml_backend/app.py. Configure credentials in a local Postman environment; never export secrets. Run with npm run dev:test for deterministic Chat and Report Analysis requests. The SMS-send endpoint is intentionally excluded.",
+    "description": "Local-only API tests derived from backend/node-api/src/server.ts and backend/ml-backend/app.py. Configure credentials in a local Postman environment; never export secrets. Run with npm run dev:test for deterministic Chat and Report Analysis requests. The SMS-send endpoint is intentionally excluded.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [

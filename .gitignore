@@ -1,5 +1,5 @@
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -8,22 +8,22 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-ml_backend/.venv/
-ml_backend/.python-runtime/
-ml_backend/python-runtime-*.log
+backend/ml-backend/.venv/
+backend/ml-backend/.python-runtime/
+backend/ml-backend/python-runtime-*.log
 # Local Python test environment and generated test artifacts.
 tests/.venv/
 tests/**/__pycache__/
 tests/**/*.py[cod]
-tests/screenshots/*
-!tests/screenshots/.gitkeep
-tests/reports/*
-!tests/reports/.gitkeep
-tests/jmeter/results/*
-!tests/jmeter/results/.gitkeep
-tests/jmeter/apache-jmeter-*/
-tests/jmeter/*.zip
-tests/jmeter/*.sha512
+output/testing/screenshots/*
+!output/testing/screenshots/.gitkeep
+output/testing/reports/*
+!output/testing/reports/.gitkeep
+tests/performance/jmeter/results/*
+!tests/performance/jmeter/results/.gitkeep
+tests/performance/jmeter/apache-jmeter-*/
+tests/performance/jmeter/*.zip
+tests/performance/jmeter/*.sha512
 tests/.env
 tests/.env.*
 !tests/.env.example

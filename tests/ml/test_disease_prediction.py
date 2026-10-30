@@ -7,7 +7,7 @@ from pathlib import Path
 import unittest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(PROJECT_ROOT / "ml_backend"))
+sys.path.insert(0, str(PROJECT_ROOT / "backend" / "ml-backend"))
 
 from disease_prediction.predict import PredictionError, get_predictor  # noqa: E402
 

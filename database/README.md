@@ -10,4 +10,4 @@ npm.cmd run db:init
 
 Or run `schema.sql` in MySQL Workbench using an account allowed to create databases and tables.
 
-The runtime connection pool lives in `database/mysql.ts`. It uses `mysql2/promise`, a bounded pool, and parameterized `execute()` calls for all user-provided values.
+The runtime connection pool lives in `database/connection/mysql.ts`. It uses `mysql2/promise`, a bounded pool, and parameterized `execute()` calls for all user-provided values.
