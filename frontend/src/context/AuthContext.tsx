@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { adminLoginRequest, forgotPasswordRequest, loginRequest, signupRequest } from '../services/authService'
+import { SESSION_EXPIRED_EVENT } from '../services/api'
 import type { SignupPayload, User } from '../types'
 
 const AUTH_KEY = 'aarogyamcare.auth'
@@ -12,6 +13,7 @@ interface StoredAuth {
 interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
+  sessionExpired: boolean
   login: (email: string, password: string, remember: boolean) => Promise<void>
   loginAdmin: (email: string, password: string, remember: boolean) => Promise<void>
   signup: (payload: SignupPayload) => Promise<void>
@@ -36,6 +38,7 @@ function readAuth(): StoredAuth | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => readAuth()?.user ?? null)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   const persist = useCallback((auth: StoredAuth, remember: boolean) => {
     const serialized = JSON.stringify(auth)
@@ -50,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await loginRequest(email, password)
       persist(result, remember)
       setUser(result.user)
+      setSessionExpired(false)
     },
     [persist],
   )
@@ -58,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await adminLoginRequest(email, password)
     persist(result, remember)
     setUser(result.user)
+    setSessionExpired(false)
   }, [persist])
 
   const signup = useCallback(
@@ -65,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await signupRequest(payload)
       persist(result, true)
       setUser(result.user)
+      setSessionExpired(false)
     },
     [persist],
   )
@@ -73,6 +79,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(AUTH_KEY)
     sessionStorage.removeItem(AUTH_KEY)
     setUser(null)
+    setSessionExpired(false)
+  }, [])
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      localStorage.removeItem(AUTH_KEY)
+      sessionStorage.removeItem(AUTH_KEY)
+      setUser(null)
+      setSessionExpired(true)
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired)
   }, [])
 
   const forgotPassword = useCallback(async (email: string) => {
@@ -83,13 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       isAuthenticated: Boolean(user),
+      sessionExpired,
       login,
       loginAdmin,
       signup,
       logout,
       forgotPassword,
     }),
-    [user, login, loginAdmin, signup, logout, forgotPassword],
+    [user, sessionExpired, login, loginAdmin, signup, logout, forgotPassword],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

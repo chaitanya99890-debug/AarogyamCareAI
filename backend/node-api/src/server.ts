@@ -469,7 +469,10 @@ app.post('/api/reports', async (req: any, res: any) => {
     const fileName = typeof input.fileName === 'string' ? input.fileName : ''
     const mimeType = typeof input.mimeType === 'string' ? input.mimeType : ''
     const fileSize = typeof input.fileSize === 'number' ? input.fileSize : 0
-    if (!fileName || !mimeType || fileSize < 0) return res.status(400).json({ message: 'Valid report metadata is required.' })
+    const allowedMimeTypes = new Set(['application/pdf', 'image/png', 'image/jpeg'])
+    if (!fileName || !allowedMimeTypes.has(mimeType) || !Number.isFinite(fileSize) || fileSize <= 0 || fileSize > MAX_REPORT_SIZE_BYTES) {
+      return res.status(400).json({ message: 'Choose a non-empty PDF, PNG, or JPG report smaller than 10 MB.' })
+    }
     const id = await createReportMetadata(user.id, { fileName, mimeType, fileSize })
     return res.status(201).json({ id, name: fileName })
   } catch (error) {

@@ -82,12 +82,20 @@ export const useChatStore = create<ChatState>()(
 
       hydrateChats: async () => {
         try {
-          const chats = await fetchChatConversations()
+          const serverChats = await fetchChatConversations()
           set((state) => ({
-            chats,
-            activeChatId: state.activeChatId && chats.some((chat) => chat.id === state.activeChatId)
-              ? state.activeChatId
-              : null,
+            // Keep device-only chats until the server has persisted them. This
+            // prevents the initial background refresh from removing a newly
+            // opened conversation before the user sends its first message.
+            chats: [
+              ...serverChats.map((serverChat) => {
+                const localChat = state.chats.find((chat) => chat.id === serverChat.id)
+                return localChat && localChat.messages.length > 0
+                  ? { ...serverChat, messages: localChat.messages }
+                  : serverChat
+              }),
+              ...state.chats.filter((localChat) => !serverChats.some((serverChat) => serverChat.id === localChat.id)),
+            ],
           }))
         } catch {
           // Preserve the existing device copy during migration or a server outage.

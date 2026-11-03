@@ -17,9 +17,8 @@ pptx.defineSlideMaster({
 });
 const C={navy:'0F172A',teal:'0D9488',blue:'2563EB',green:'059669',slate:'475569',pale:'E2E8F0',white:'FFFFFF',light:'F0FDFA',amber:'D97706'};
 function title(s,t,sub=''){s.addText(t,{x:.65,y:.45,w:12,h:.4,fontSize:25,bold:true,color:C.navy,margin:0});if(sub)s.addText(sub,{x:.65,y:.98,w:12,h:.24,fontSize:11,color:C.slate,margin:0});}
-function bullets(s,items,x,y,w,h,size=15){s.addText(items.map((v,i)=>({text:v,options:{bullet:{indent:18},hanging:4,breakLine:i<items.length-1}})),{x,y,w,h,fontSize:size,color:C.navy,paraSpaceAfterPt:10,margin:.03,valign:'top'});}
 function card(s,x,y,w,h,head,body,color=C.teal){s.addShape(pptx.ShapeType.roundRect,{x,y,w,h,rectRadius:.06,fill:{color:'FFFFFF'},line:{color:C.pale}});s.addShape(pptx.ShapeType.rect,{x,y,w,h:.1,fill:{color},line:{color}});s.addText(head,{x:x+.25,y:y+.35,w:w-.5,h:.25,fontSize:18,bold:true,color,margin:0});s.addText(body,{x:x+.25,y:y+.9,w:w-.5,h:h-1.1,fontSize:12.5,color:C.slate,margin:0,breakLine:false});}
-function metric(s,x,value,label,color){s.addShape(pptx.ShapeType.roundRect,{x,y:5.1,w:2.65,h:.9,rectRadius:.06,fill:{color:'FFFFFF'},line:{color:C.pale}});s.addText(value,{x:x+.1,y:5.25,w:2.45,h:.25,fontSize:20,bold:true,color,align:'center',margin:0});s.addText(label,{x:x+.1,y:5.62,w:2.45,h:.14,fontSize:9,color:C.slate,align:'center',margin:0});}// Slide 6: validation
+// Slide 6: validation
 {
  const s=pptx.addSlide('MASTER'); title(s,'Demonstration and validation','The live development app was checked from the browser and through the API.');
  s.addShape(pptx.ShapeType.roundRect,{x:.75,y:1.55,w:4.15,h:4.6,rectRadius:.06,fill:{color:'F0FDFA'},line:{color:'99F6E4'}});

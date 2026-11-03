@@ -8,7 +8,9 @@ import { isEmail } from '../utils'
 
 export function LoginPage() {
   const { login, loginAdmin } = useAuth()
-  const admin = useLocation().pathname.startsWith('/admin/login')
+  const location = useLocation()
+  const admin = location.pathname.startsWith('/admin/login')
+  const loginState = location.state as { from?: string; sessionExpired?: boolean } | null
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,7 +29,8 @@ export function LoginPage() {
     setLoading(true)
     try {
       await (admin ? loginAdmin(email, password, remember) : login(email, password, remember))
-      navigate(admin ? '/admin' : '/dashboard')
+      const destination = loginState?.from
+      navigate(destination?.startsWith('/') && !destination.startsWith('//') ? destination : admin ? '/admin' : '/dashboard')
     } catch (error) {
       setErrors({
         form: error instanceof AppError ? error.message : 'Unable to sign in. Please try again.',
@@ -73,6 +76,11 @@ export function LoginPage() {
             Forgot password
           </Link>
         </div>
+        {loginState?.sessionExpired && (
+          <p className="text-sm text-amber-700" role="status">
+            Your session expired. Sign in again to continue where you left off.
+          </p>
+        )}
         {errors.form && (
           <p className="text-sm text-rose-600" role="alert">
             {errors.form}

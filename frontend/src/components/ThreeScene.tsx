@@ -123,7 +123,7 @@ function Stethoscope() {
 
 function HeartScene({ reduced, variant }: { reduced: boolean; variant: SceneVariant }) {
   const heart = useRef<Group>(null)
-  const geometry = useMemo(createHeartGeometry, [])
+  const geometry = useMemo(() => createHeartGeometry(), [])
   const scale = variant === 'dashboard' ? 0.82 : variant === 'auth' ? 0.9 : 1
 
   useFrame(({ clock }) => {

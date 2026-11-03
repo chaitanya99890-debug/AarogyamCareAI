@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import mysql from 'mysql2/promise'
-import { ensureAdminSchema } from '../../database/migrations/adminMigration.ts'
+import { ensureAdminSchema, ensureAppointmentSchema, ensureChatConversationSchema, ensureProfileSchema, ensureReportAnalysisSchema } from '../../database/migrations/adminMigration.ts'
 
 const schemaPath = fileURLToPath(new URL('../../database/schema/schema.sql', import.meta.url))
 
@@ -24,6 +24,10 @@ async function main() {
     await connection.query(await readFile(schemaPath, 'utf8'))
     await connection.changeUser({ database: process.env.DB_NAME?.trim() || 'aarogyamcareai' })
     await ensureAdminSchema(connection)
+    await ensureProfileSchema(connection)
+    await ensureChatConversationSchema(connection)
+    await ensureReportAnalysisSchema(connection)
+    await ensureAppointmentSchema(connection)
     console.log('MySQL schema is ready.')
   } finally {
     await connection.end()

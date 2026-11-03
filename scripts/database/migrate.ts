@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import mysql from 'mysql2/promise'
-import { ensureAdminSchema } from '../../database/migrations/adminMigration.ts'
+import { ensureAdminSchema, ensureAppointmentSchema, ensureChatConversationSchema, ensureProfileSchema, ensureReportAnalysisSchema } from '../../database/migrations/adminMigration.ts'
 
 async function main() {
   const host = process.env.DB_HOST?.trim()
@@ -11,7 +11,11 @@ async function main() {
   const connection = await mysql.createConnection({ host, port: Number(process.env.DB_PORT ?? 3306), user, password, database, charset: 'utf8mb4' })
   try {
     await ensureAdminSchema(connection)
-    console.log('Admin database migration completed safely.')
+    await ensureProfileSchema(connection)
+    await ensureChatConversationSchema(connection)
+    await ensureReportAnalysisSchema(connection)
+    await ensureAppointmentSchema(connection)
+    console.log('Database migrations completed safely.')
   } finally {
     await connection.end()
   }

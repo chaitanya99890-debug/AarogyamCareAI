@@ -1,5 +1,5 @@
 import { BellRing, CalendarClock, Pencil, Plus, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Badge, Button, Card, EmptyState, Input, PageHeader, Textarea } from '../components/ui'
 import { useToast } from '../context/ToastContext'
 import { createServerAppointment, deleteServerAppointment, getServerAppointments, getSmsConfigurationStatus, updateServerAppointment, type SmsConfigurationStatus } from '../services/appointmentService'
@@ -104,12 +104,9 @@ function AppointmentCard({
 
 export function AppointmentsPage() {
   const { showToast } = useToast()
-  const initialAppointmentsRef = useRef<Appointment[] | null>(null)
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    const storedAppointments = readAppointments()
-    initialAppointmentsRef.current = storedAppointments
-    return storedAppointments
-  })
+  const [initialAppointments] = useState<Appointment[]>(readAppointments)
+  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments)
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [draft, setDraft] = useState<AppointmentDraft>(emptyDraft)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formError, setFormError] = useState('')
@@ -125,7 +122,7 @@ export function AppointmentsPage() {
     void getServerAppointments()
       .then(async ({ appointments: serverAppointments }) => {
         const serverIds = new Set(serverAppointments.map((appointment) => appointment.id))
-        const browserOnlyAppointments = (initialAppointmentsRef.current ?? []).filter((appointment) => !serverIds.has(appointment.id))
+        const browserOnlyAppointments = initialAppointments.filter((appointment) => !serverIds.has(appointment.id))
         const copiedAppointments = await Promise.all(
           browserOnlyAppointments.map(async (appointment) => {
             try {
@@ -150,6 +147,11 @@ export function AppointmentsPage() {
         // The original browser copy remains usable if the optional server is offline.
       })
     return () => { active = false }
+  }, [initialAppointments])
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setCurrentTime(Date.now()), 60_000)
+    return () => window.clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -167,16 +169,16 @@ export function AppointmentsPage() {
   const upcoming = useMemo(
     () =>
       appointments
-        .filter((appointment) => appointmentDateTime(appointment).getTime() >= Date.now())
+        .filter((appointment) => appointmentDateTime(appointment).getTime() >= currentTime)
         .sort((a, b) => appointmentDateTime(a).getTime() - appointmentDateTime(b).getTime()),
-    [appointments],
+    [appointments, currentTime],
   )
   const past = useMemo(
     () =>
       appointments
-        .filter((appointment) => appointmentDateTime(appointment).getTime() < Date.now())
+        .filter((appointment) => appointmentDateTime(appointment).getTime() < currentTime)
         .sort((a, b) => appointmentDateTime(b).getTime() - appointmentDateTime(a).getTime()),
-    [appointments],
+    [appointments, currentTime],
   )
 
   const updateDraft = <Key extends keyof AppointmentDraft>(key: Key, value: AppointmentDraft[Key]) => {

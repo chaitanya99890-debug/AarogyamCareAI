@@ -13,12 +13,18 @@ The dataset is intended here solely for an academic demonstration. Its labels an
 
 ## Run locally
 
-From this `backend/ml-backend` directory:
+From the project root, create and install the local Python environment once:
 
 ```powershell
-py -m pip install -r requirements.txt
-py -m disease_prediction.train
-py -m uvicorn app:app --reload --host 127.0.0.1 --port 8000
+py -m venv backend\ml-backend\.python-runtime
+backend\ml-backend\.python-runtime\Scripts\python.exe -m pip install -r backend\ml-backend\requirements.txt
+```
+
+Then train or run the API from the project root:
+
+```powershell
+npm run ml:train
+npm run ml:server
 ```
 
 The trainer uses a stratified 80/20 train/test split with `random_state=42`, trains a Decision Tree and Random Forest, prints accuracy/precision/recall/macro F1 and confusion matrices, then saves the chosen model and its label encoder. It also writes the precise results to `disease_prediction/evaluation_results.json`.

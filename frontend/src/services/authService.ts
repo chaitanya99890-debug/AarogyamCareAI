@@ -50,8 +50,11 @@ export async function signupRequest(input: SignupPayload): Promise<AuthResponse>
       role: 'user',
     })
   } catch (error) {
+    if (error instanceof AppError && error.status === 409) {
+      throw new AppError('An account with this email already exists. Sign in instead, or use a different email.', error.status)
+    }
     if (error instanceof AppError && error.status && error.status < 500) {
-      throw new AppError('Unable to create your account with the provided details. Please review and try again.')
+      throw new AppError(error.message || 'Unable to create your account with the provided details. Please review and try again.', error.status)
     }
     throw error
   }

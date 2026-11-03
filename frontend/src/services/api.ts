@@ -10,6 +10,8 @@ export class AppError extends Error {
   }
 }
 
+export const SESSION_EXPIRED_EVENT = 'aarogyamcare:session-expired'
+
 const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
 
 export const apiClient: AxiosInstance = axios.create({
@@ -36,6 +38,20 @@ apiClient.interceptors.request.use((config) => {
   }
   return config
 })
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      !error.config?.url?.startsWith('/api/auth/')
+    ) {
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+    }
+    return Promise.reject(error)
+  },
+)
 
 function friendlyMessage(error: unknown): AppError {
   if (error instanceof AppError) return error

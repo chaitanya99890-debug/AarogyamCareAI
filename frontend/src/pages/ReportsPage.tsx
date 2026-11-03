@@ -62,8 +62,8 @@ export function ReportsPage() {
       type: file.type,
     }
     try {
-      await uploadReport(file, setProgress)
-      persist([local, ...reports])
+      const saved = await uploadReport(file, setProgress)
+      persist([{ ...local, id: saved.id, name: saved.name }, ...reports])
       showToast('Report uploaded.', 'success')
     } catch (err) {
       persist([local, ...reports])
@@ -130,9 +130,9 @@ export function ReportsPage() {
                     <Badge tone="success">{report.status}</Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <a href="/report-analysis" className="font-medium text-brand-700">
+                    <Link to="/report-analysis" className="font-medium text-brand-700">
                       Analyze
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               ))}
