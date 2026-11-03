@@ -81,6 +81,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://aarogyam-care-ai.vercel.app"
+        "https://aarogyam-care-8ej328b52-chaitanya99890-debug.vercel.app",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:5174",
