@@ -1,5 +1,5 @@
 import mysql, { type Pool, type PoolOptions } from 'mysql2/promise'
-import { getDatabaseSslOptions } from './databaseSsl.ts'
+import { getDatabaseSslOptions } from '../../backend/node-api/src/config/databaseSsl.ts'
 let pool: Pool | undefined
 
 function requiredEnvironment(name: 'DB_HOST' | 'DB_USER' | 'DB_PASSWORD' | 'DB_NAME'): string {
