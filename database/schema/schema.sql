@@ -1,8 +1,4 @@
-CREATE DATABASE IF NOT EXISTS aarogyamcareai
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
 
-USE aarogyamcareai;
 
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

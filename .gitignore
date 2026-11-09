@@ -11,6 +11,7 @@ node_modules
 backend/ml-backend/.venv/
 backend/ml-backend/.python-runtime/
 backend/ml-backend/python-runtime-*.log
+backend/node-api/certs/
 # Local Python test environment and generated test artifacts.
 tests/.venv/
 tests/**/__pycache__/

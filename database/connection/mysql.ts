@@ -1,5 +1,5 @@
 import mysql, { type Pool, type PoolOptions } from 'mysql2/promise'
-
+import { getDatabaseSslOptions } from './databaseSsl.ts'
 let pool: Pool | undefined
 
 function requiredEnvironment(name: 'DB_HOST' | 'DB_USER' | 'DB_PASSWORD' | 'DB_NAME'): string {
@@ -13,6 +13,7 @@ export function getDatabasePool(): Pool {
 
   const options: PoolOptions = {
     host: requiredEnvironment('DB_HOST'),
+    ssl: getDatabaseSslOptions(),
     port: Number(process.env.DB_PORT ?? 3306),
     user: requiredEnvironment('DB_USER'),
     password: requiredEnvironment('DB_PASSWORD'),
